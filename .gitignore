@@ -132,3 +132,4 @@ dmypy.json
 # Other stuff I'm storing here:
 .xlsx
 .pkl
+*.xlsx
