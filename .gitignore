@@ -133,4 +133,4 @@ dmypy.json
 .xlsx
 .pkl
 *.xlsx
-.DSstore
+.DS_Store
