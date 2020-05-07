@@ -60,24 +60,37 @@ class Axis:
         self.DecelStartLimit = round(self.Target - self.Distance*0.25)
         print(self.AccelEndLimit, self.DecelStartLimit)
         increment = self.calc_increment(self.Target, self.Time/OutputRate)
+        self.Complete = False
         while self.Complete == False:
-            #print(self.Position, self.StartPosit, self.StartPosit+self.AccelEndLimit)
+            print(self.StartPosit, self.Position, self.AccelEndLimit, self.DecelStartLimit,self.Target)
             if self.Position < self.AccelEndLimit:
                 # If position is in the accel phase
                 print(increment)
-                self.move(round(increment))
-                self.PrintMove()
+                self.move(self.calc_displacement())
+                print(self.Position)
             elif self.Position > self.Position+self.AccelEndLimit and self.Position < self.Target-self.DecelDistance:
                 # If position is between phases (linear velocity)
-                self.move(increment)
+                self.move(self.calc_displacement())
+                self.PrintMove()
             elif self.Position > self.DecelStartLimit:
                 # If position is in the decel phase
                 self.move(increment/2)
-
+                self.PrintMove
+            else:
+                ExitCondition = True
 
     def move(self, increment, OutputRate = None):
         self.Position += increment
         return self.Position
+
+
+    def calc_displacement(self):
+        u = self.Speed
+        t = self.Time
+        a = 1
+        s = u * t + (a+t**2) * 0.5
+        # s = distance travelled in the 1/60th of a second.
+        return s/1000
 
 
     def add_dead(self, dead_no, position):
@@ -108,6 +121,10 @@ class Axis:
     def send_OSC(self):
         #For this axis, send a thing.
         pass
+
+    def snooze(self, SleepValue):
+        time.sleep(SleepValue)
+
 
 
 class Flybar(Axis):
@@ -231,16 +248,12 @@ def main(menu_response, AxisStorage = None):
                 Ax.Speed = Ax.Distance / Ax.Time
                 # Work out how long to sleep per frame.
                 SleepValue = 1/OutputRate - (1/OutputRate)/100 * 10.1
+                Ax.snooze(SleepValue)
                 Ax.go()
-                Ax.Complete = False
-                while Ax.Complete == False:
-                    time.sleep(SleepValue)
-                    Ax.Position = Ax.move(Ax.Increment, OutputRate)
-                    Ax.PrintMove()
-                    if Ax.Position >= Ax.Target:
-                        Ax.Complete = True
-                    print(ExitCondition)
-                    Ax.send_OSC()
+                Ax.Position = Ax.move(Ax.Increment, OutputRate)
+                Ax.PrintMove()
+                print(ExitCondition)
+                Ax.send_OSC()
     elif menu_response == 0:
         return True
     else:
