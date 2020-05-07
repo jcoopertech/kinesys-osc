@@ -19,30 +19,60 @@ class Axis:
         self.HighSoft = HighSoft
         self.LowSoft = LowSoft
         self.Position = Position
-        print(self.__dict__)
         self.Target = None
         self.Deads = {}
         self.Decel = None
         self.AxisType = None
-        self.Time : float = 0
+        self.Time = 0
+        self.Complete = False
+        self.MovedBy = 0
         if AxisName == None:
             self.Text = "Axis {0}".format(AxisNumber)
         else:
             self.Text = AxisName
 
     def print_me(self):
-        for attribute,value in self.__dict__.items():
-            print(attribute, value)
+        print(self.__dict__)
+
+    def PrintMove(self):
+        print(f"Flybar: {self.AxisNumber}\tPosition: {self.Position},\tIncrement Per 1/{OutputRate} second: {self.Increment}")
 
     def set_target(self, Target):
         self.Target = Target
+        self.Complete = False
+
+    def calc_move_distance(self):
+        if self.Target > self.Position:
+            self.Distance = self.Target - self.Position
+        elif self.Target < self.Position:
+            self.Distance = self.Position - self.Target
+        return self.Distance
 
     def calc_increment(self, Target, Time):
-        pass
+        calc_move_distance()
 
-    def move(self, increment):
-        if self.Target != None:
-            self.Position += increment
+
+    def go(self):
+        self.StartPosit = self.Position
+        self.AccelEndLimit = self.Position + self.Target*0.25
+        self.DecelStartLimit = self.Target =- self.Target * 0.25
+        print(self.AccelEndLimit, self.DecelStartLimit)
+        increment = self.calc_increment()
+        while self.Complete == False:
+            if self.Position in range(self.StartPosition, self.Position+self.AccelDistance):
+                # If position is in the accel phase
+                self.move(sqrt((increment/2)**2))
+            elif self.Position > self.Position+self.AccelDistance and self.Position < self.Target-self.DecelDistance:
+                # If position is between phases (linear velocity)
+                self.move(increment)
+            elif self.Position in range(self.DecelStartLimit, self.Target):
+                # If position is in the decel phase
+                self.move(sqrt((increment/2)**2))
+
+    def move(self, increment, OutputRate = None):
+        self.Position += increment
+        return self.Position
+
 
     def add_dead(self, dead_no, position):
         # Format for dead_list must be [1: 14100, 2: 7000, ... ]
@@ -54,12 +84,7 @@ class Axis:
         for key, value in sorted(self.Deads.items()):
             print(key, value)
 
-    def calc_move_distance(self):
-        if self.Target > self.Position:
-            self.Distance = self.Target - self.Position
-        elif self.Target < self.Position:
-            self.Distance = self.Position - self.Target
-        return self.Distance
+
 
     def calc_speed(self):
         if self.Speed != None:
@@ -74,6 +99,10 @@ class Axis:
     def calc_decel(self):
         pass
 
+    def send_OSC(self):
+        #For this axis, send a thing.
+        pass
+
 
 class Flybar(Axis):
     def __init__(self, AxisNumber, AxisName = None):
@@ -85,7 +114,6 @@ class ChainHoist(Axis):
     def __init__(self, AxisNumber, AxisName = None):
         self.MaxSpeed = 400
         super().__init__(AxisNumber, AxisName)
-
 
 
 """Function Definitions"""
@@ -166,27 +194,46 @@ def menu():
 def main(menu_response, AxisStorage = None):
     if menu_response == 1:
         AxisStorage = setup_Axes()
+    if menu_response == 2:
+        CueStorage = setup_Cues()
     elif menu_response == 4:
         printAxes(AxisStorage)
     elif menu_response == 99:
         #Load Axis Target and Position info.
         axis = [1]
+        """
+        Need to look into threading to update multiple Axes simultaneously.
+
+        something like:
+        load Axis moves to parameters,
+        for Axis in Cue Axes:
+            Thread.start(Axis.go())
+        that should start all moves, but it doesn't allow for any delay at the start of move.
+
+        """
         for Ax in AxisStorage:
             if Ax.AxisNumber == 1:
+                # Set up pre axis moves things
                 Ax.Position = 0
-                Ax.Target = 100000
-                Ax.calc_move_distance()
-                Ax.Time = 100 * OutputRate
-
+                Ax.Target = 1000
+                Ax.Time = 10 * OutputRate
+                """
+                Change Ax.Increment based on % move complete, then put the increment as a square till 1
+                or some other mathmatical function to create a curve - sqrt increment squared + 1 or something.
+                """
+                Ax.Increment = Ax.calc_move_distance() / Ax.Time
                 Ax.Speed = Ax.Distance / Ax.Time
+                # Work out how long to sleep per frame.
                 SleepValue = 1/OutputRate - (1/OutputRate)/100 * 10.1
-                time_now = time.time()
-                while Ax.Position < Ax.Target:
+                Ax.Complete = False
+                while Ax.Complete == False:
                     time.sleep(SleepValue)
-                    Ax.move(Ax.Speed)
-                    print(Ax.Position, Ax.Speed)
-                time_end = time.time()
-                print(time_end-time_now)
+                    Ax.Position = Ax.move(Ax.Increment, OutputRate)
+                    Ax.PrintMove()
+                    if Ax.Position >= Ax.Target:
+                        Ax.Complete = True
+                    print(ExitCondition)
+                    Ax.send_OSC()
     elif menu_response == 0:
         return True
     else:
@@ -200,13 +247,16 @@ def importAxes():
         line_count = 0
         for row in csv_reader:
             if line_count == 0:
-                print(f'Found columns: {", ".join(row)}')
+                print("Found columns: {0}".format(", ".join(row)))
                 line_count += 1
             else:
 
-                print(f'\t{row[0]} works in the {row[1]} department, and was born in {row[2]}.')
-                line_count += 1
-        print(f'Processed {line_count} lines.')
+                if row[2] == "C":
+                    AxisStorage.append(ChainHoist(row[0], row[1]))
+                elif row[2] == "F":
+                    AxisStorage.append(Flybar(row[0],row[1]))
+                    line_count += 1
+        print('Processed {0} lines.'.format(line_count))
 
 
 if __name__ == "__main__":
