@@ -55,7 +55,8 @@ def Quser_input(query):
 def setup_MoveEventInCue(CueNumber, AxisStorage):
     printAxes(AxisStorage)
     AxisID = Quser_input("Enter which Axis you'd like to move: ")
-    Target = Quser_input(f"Enter the target for '{[Axis.AxisName for Axis in AxisStorage if Axis.AxisNumber == AxisID][0]}': '")
+    AxisStorage[0].print_me()
+    Target = Quser_input(f"Enter the target for '{[Axis.AxisName for Axis in AxisStorage if Axis.AxisNumber == AxisID]}': '")
     Time = Quser_input(f"How many seconds should this move take?")
     Move = MoveEvent(Target, Time, AxisID)
     return Move

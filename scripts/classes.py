@@ -3,10 +3,10 @@
 # How we define a move, and incremental OSC pulse values
 
 class Cue():
-    def __init__(self,CueNumber, MoveList):
+    def __init__(self,CueNumber, MoveList, AxisStorage):
         # Creating a new cue
         self.Moves = MoveList
-        self.Axes = [keys for keys in self.Moves.items()]
+        self.Axes = [Axis for Axis in AxisStorage if Axis.ID in [Move.AxisNumber for Move in MoveList]]
         print(self.Axes)
         self.CueNumber = CueNumber
         for move in MoveList:
@@ -76,6 +76,23 @@ class MoveEvent(Cue):
             # Add pulses for each move thing to list
             self.MoveStepsList.append(pulsemove)
 
+    def calc_speed(self):
+        if self.Speed != None:
+            self.Speed = self.Target / self.Time
+        elif self.Time != None:
+            self.calc_move_distance()
+            self.Time = self.Position
+
+    def calc_accel(self):
+        pass
+
+    def calc_decel(self):
+        pass
+
+    def send_OSC(self):
+        #For this axis, send a thing.
+        pass
+
 
 class Axis:
     def __init__(self, AxisNumber, AxisName=None, Accel=None, Decel=None, HighSoft=16000, LowSoft=1000, Speed = 400, Position = 0):
@@ -131,24 +148,6 @@ class Axis:
             print("No deads have been set for {0}".format(AxisName))
         for key, value in sorted(self.Deads.items()):
             print(key, value)
-
-
-    def calc_speed(self):
-        if self.Speed != None:
-            self.Speed = self.Target / self.Time
-        elif self.Time != None:
-            self.calc_move_distance()
-            self.Time = self.Position
-
-    def calc_accel(self):
-        pass
-
-    def calc_decel(self):
-        pass
-
-    def send_OSC(self):
-        #For this axis, send a thing.
-        pass
 
 
 class Flybar(Axis):
