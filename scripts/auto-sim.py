@@ -65,14 +65,14 @@ class Axis:
             if self.Position < self.AccelEndLimit:
                 # If position is in the accel phase
                 print(increment)
-                self.move(round(increment))
+                self.move(increment)
                 self.PrintMove()
             elif self.Position > self.Position+self.AccelEndLimit and self.Position < self.Target-self.DecelDistance:
                 # If position is between phases (linear velocity)
                 self.move(increment)
             elif self.Position > self.DecelStartLimit:
                 # If position is in the decel phase
-                self.move(increment/2)
+                self.move(increment)
 
 
     def move(self, increment, OutputRate = None):

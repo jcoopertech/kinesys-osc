@@ -1,4 +1,4 @@
-#!/usr/bin python
+#!/usr/bin/python
 
 import math
 import pickle
@@ -70,7 +70,7 @@ class Axis:
                 print(self.Position)
             elif self.Position > self.Position+self.AccelEndLimit and self.Position < self.Target-self.DecelDistance:
                 # If position is between phases (linear velocity)
-                self.move(self.calc_displacement())
+                self.move(increment)
                 self.PrintMove()
             elif self.Position > self.DecelStartLimit:
                 # If position is in the decel phase
