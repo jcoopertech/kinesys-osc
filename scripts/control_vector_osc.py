@@ -30,6 +30,10 @@ command_keys = {
 "blue_start": "f3",
 "green_start": "f5",
 "yellow_start": "f7",
+"next_cue": "pagedown",
+"prev_cue": "pageup",
+"first_cue": "home",
+"last_cue": "end",
 }
 
 
