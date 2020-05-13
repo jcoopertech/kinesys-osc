@@ -34,6 +34,7 @@ command_keys = {
 "prev_cue": "pageup",
 "first_cue": "home",
 "last_cue": "end",
+"load": "f12",
 }
 
 
