@@ -4,10 +4,24 @@ Controlling Kinesys Vector automation over OSC.
 ## Purpose
 Outputs OSC data, based on programmed cues, which are triggered by OSC.
 
+##Dependencies
+```
+pyAutoGUI
+pythonosc
+```
+
+These can be installed by using `pip` or `pip3` on Mac.
+```
+pip install pyAutoGUI
+pip install pythonosc
+```
 ### Usage
-On windows:
+On Windows:
 
 `python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME`
+
+On Mac:
+`python3 control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME`
 
 All arguments are optional, and default values are:
 ```
@@ -53,7 +67,11 @@ If one is missing / one is added, we'll start to undershoot or overshoot cues in
 
 #### Available Cuelist manipulation commands:
 `/place` - to go to a specific Cue in Vector
+
 `/cue/add N` - to add a cue of number N (the cuelist is automatically sorted)
+
 `/cue/delete N` - delete the cue
+
 `/cue/save F` - save the current python `cuelist` array to `F.qlist`
+
 `/cue/open F` - load the `cuelist` array from the `F.qlist` file on disk.
