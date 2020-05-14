@@ -6,7 +6,8 @@ Outputs OSC data, based on programmed cues, which are triggered by OSC.
 
 ### Usage
 On windows:
-`python control_vector_osc.py --ip IP --port PORT --cuelist NameOf.qlistFile.`
+
+`python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME`
 
 All arguments are optional, and default values are:
 ```
@@ -24,8 +25,8 @@ cuelist = [
 ]
 ```
 
-### Available OSC commands:
-Shown below are the currently available features, next to the button presses they emulate.
+### Available Vector control commands:
+Shown below are the currently available Vector control features, next to the button presses they emulate.
 ```python
 command_keys = {
 "all_stop": "space",
@@ -44,3 +45,15 @@ command_keys = {
 "load": "f12",
 }
 ```
+
+### Cuelists
+We can go to a specific place in the Vector show by using the `place` command.
+This requires you to have an up-to-date `cuelist` array in the programming code - so that Python knows what cue Vector is skipping.
+If one is missing / one is added, we'll start to undershoot or overshoot cues in the cuelist - which won't be fun.
+
+#### Available Cuelist manipulation commands:
+`/place` - to go to a specific Cue in Vector
+`/cue/add N` - to add a cue of number N (the cuelist is automatically sorted)
+`/cue/delete N` - delete the cue
+`/cue/save F` - save the current python `cuelist` array to `F.qlist`
+`/cue/open F` - load the `cuelist` array from the `F.qlist` file on disk.
