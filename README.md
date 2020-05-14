@@ -2,7 +2,11 @@
 Controlling Kinesys Vector automation over OSC.
 
 ## Purpose
-Outputs OSC data, based on programmed cues, which are triggered by OSC.
+Emulates Kinesys Vector V2 Keyboard Shortcuts, to emulate an operator starting playbacks. This is to enable timecode triggered automation in a **simulation** environment.
+
+**This code should never be used to control motors or drives in a real world scenario. You take sole responsibility for how you use this code.
+
+This system was built for a virtual show, where Vector sends Media Server Packets to D3, for simulation of set piece movement.**
 
 ## Dependencies
 ```
