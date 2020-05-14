@@ -1,4 +1,5 @@
-# kinesys-osc: OSC control for Kinesys Vector v2 Motion Control and Automation System.
+# kinesys-osc
+## OSC control for Kinesys Vector v2 Motion Control and Automation System.
 
 ## Purpose
 Emulates Kinesys Vector V2 Keyboard Shortcuts, to emulate an operator starting playbacks. This is to enable timecode triggered automation in a **simulation** environment.
