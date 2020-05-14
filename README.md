@@ -48,7 +48,15 @@ cuelist = [
 ```
 
 ### Available Vector control commands:
+All OSC commands below are prefixed with the following `system_address`:
+```python
+system_id = "CustomStringHere"
+system_address = f"/kinesys/{system_id}"
+```
+By default, `system_id = "SST_Auto"`
+
 Shown below are the currently available Vector control features, next to the button presses they emulate.
+These commands should be given as values under the `/control` address
 ```python
 command_keys = {
 "all_stop": "space",
@@ -68,6 +76,14 @@ command_keys = {
 }
 ```
 
+#### Example operation of control OSC:
+This gives an example of the OSC commands needed to load the first cue, then start the red playback in Vector.
+```
+/kinesys/SST_Auto/control first_cue
+/kinesys/SST_Auto/control load
+/kinesys/SST_Auto/control red_start
+```
+
 ### Cuelists
 We can go to a specific place in the Vector show by using the `place` command.
 This requires you to have an up-to-date `cuelist` array in the programming code - so that Python knows what cue Vector is skipping.
@@ -83,3 +99,15 @@ If one is missing / one is added, we'll start to undershoot or overshoot cues in
 `/cue/save F` - save the current python `cuelist` array to `F.qlist`
 
 `/cue/open F` - load the `cuelist` array from the `F.qlist` file on disk.
+
+##### Example operation of OSC cuelist manipulation
+This sequence of commands adds cue 2.1, deletes cue 1, and saves these changes to `mycuelist.qlist`.
+We then put Vector into cue 6, which can then be loaded, and playbacks started as needed.
+```
+/kinesys/SST_Auto/cue/add 2.1
+/kinesys/SST_Auto/cue/delete 1
+/kinesys/SST_Auto/cue/save mycuelist
+/kinesys/SST_Auto/place 6
+/kinesys/SST_Auto/control load
+/kinesys/SST_Auto/control yellow_start
+```
