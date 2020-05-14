@@ -15,7 +15,7 @@ These can be installed by using `pip` or `pip3` on Mac.
 pip install pyAutoGUI
 pip install pythonosc
 ```
-### Usage
+## Usage
 On Windows:
 ```
 python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
@@ -26,7 +26,7 @@ On Mac:
 python3 control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
 ```
 
-#### Default values:
+### Default values:
 Arguments are all optional - default values are:
 ```
 --ip: 127.0.0.1
