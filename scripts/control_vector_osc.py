@@ -165,7 +165,7 @@ if __name__ == "__main__":
     default=None, help="The filename of the .qlist file you want to load.")
     args = parser.parse_args()
 
-    if accept_disclaimer() or True:
+    if accept_disclaimer():
         dispatcher = dispatcher.Dispatcher()
         dispatcher.map(f"{system_address}/control", get_auto_trigger)
         dispatcher.map(f"{system_address}/place", sync_to_latest_cue)
