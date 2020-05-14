@@ -4,7 +4,7 @@ Controlling Kinesys Vector automation over OSC.
 ## Purpose
 Outputs OSC data, based on programmed cues, which are triggered by OSC.
 
-##Dependencies
+## Dependencies
 ```
 pyAutoGUI
 pythonosc
@@ -17,13 +17,17 @@ pip install pythonosc
 ```
 ### Usage
 On Windows:
-
-`python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME`
+```
+python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
+```
 
 On Mac:
-`python3 control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME`
+```
+python3 control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
+```
 
-All arguments are optional, and default values are:
+#### Default values:
+Arguments are all optional - default values are:
 ```
 --ip: 127.0.0.1
 --port: 42020
