@@ -57,8 +57,7 @@ cuelist = [
 ]
 
 DISCLAIMER = """
-
-
+==
 This utility allows you to control Kinesys Vector from any software, able to
 send OSC packets.
 
@@ -72,7 +71,6 @@ not endanger anyone in the process.
 I will not be held accountable for any ways you use this software, in the event
 of damage, injury, or any other unexpected malfunction of any system this
 interfaces with.
-
 ==
 """
 def accept_disclaimer():
@@ -85,7 +83,15 @@ def get_auto_trigger(unused_addr, value):
     global cuelist
     value = round(float(value),3)
     if value in command_keys.keys():
-        print(f"[ {unused_addr} ] ~ {value} - Current Cue: {cuelist[CurrentCue-1]}")
+        if value == "first_cue":
+            CurrentCue = cuelist[0]
+        elif value == "last_cue":
+            CurrentCue = cuelist[-1]
+        try:
+            print(f"[ {unused_addr} ] ~ {value} - Current Cue: {cuelist[CurrentCue-1]}")
+        except IndexError as e:
+            print(f"{e}")
+            print(f"[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}\nCaptain, we've gone off the deep end. len(cuelist) = {len(cuelist)}")
         press(command_keys[value])
         # Increment cue number to track along with Vector
         if value == "next_cue":
