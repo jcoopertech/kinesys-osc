@@ -103,11 +103,12 @@ If one is missing / one is added, we'll start to undershoot or overshoot cues in
 ##### Example operation of OSC cuelist manipulation
 This sequence of commands adds cue 2.1, deletes cue 1, and saves these changes to `mycuelist.qlist`.
 We then put Vector into cue 6, which can then be loaded, and playbacks started as needed.
+_Please note: all numbers should be __floats___
 ```
 /kinesys/SST_Auto/cue/add 2.1
-/kinesys/SST_Auto/cue/delete 1
+/kinesys/SST_Auto/cue/delete 1.0
 /kinesys/SST_Auto/cue/save mycuelist
-/kinesys/SST_Auto/place 6
+/kinesys/SST_Auto/place 6.0
 /kinesys/SST_Auto/control load
 /kinesys/SST_Auto/control yellow_start
 ```
