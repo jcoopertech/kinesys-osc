@@ -13,12 +13,12 @@ Originally written for the Opera Double Bill, GSMD
 import argparse
 import pyautogui
 import pickle
-
+from time import strftime
 from pythonosc import osc_server
 from pythonosc import dispatcher
 
 press = pyautogui.press
-
+GSMD=True
 system_id = "SST_Auto"
 system_address = f"/kinesys/{system_id}"
 
@@ -39,22 +39,17 @@ command_keys = {
 "load": "f12",
 }
 
-CurrentCue = 1
 
 cuelist = [
-1.0,
-2.0,
-3.0,
-4.0,
-4.24,
-4.25,
+0.5,0.6,0.7,0.8,
+1.0,1.5,2.0,2.5,3.0,4.0,
 5.0,
-6.0,
-7.0,
-8.0,
-9.0,
-10.0,
-]
+5.1,
+6.0,7.0,8.0,9.0,
+10.0,11.0,12.0,13.0,14.0]
+
+CurrentCue = cuelist[0]
+
 
 DISCLAIMER = """
 ==
@@ -81,21 +76,35 @@ def accept_disclaimer():
 def get_auto_trigger(unused_addr, value):
     global CurrentCue
     global cuelist
-    value = round(float(value),3)
     if value in command_keys.keys():
         if value == "first_cue":
             CurrentCue = cuelist[0]
+            print(CurrentCue)
         elif value == "last_cue":
             CurrentCue = cuelist[-1]
+        elif value == "next_cue":
+            try:
+                CurrentCue = cuelist[int(cuelist.index(CurrentCue))+1]
+            except IndexError as e:
+                print(e)
+                print(f"[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}\nCaptain, we've gone off the deep end. len(cuelist) = {len(cuelist)}")
+                print("Going to last final cue")
+                CurrentCue = cuelist[-1]
+        elif value == "prev_cue":
+            try:
+                CurrentCue = cuelist[cuelist.index(CurrentCue)-1]
+            except IndexError as e:
+                print(e)
+                print("Probably at the start of the cuelist. Setting current cue to first cue.")
+                CurrentCue = cuelist[0]
         try:
-            print(f"[ {unused_addr} ] ~ {value} - Current Cue: {cuelist[CurrentCue-1]}")
+            print(f"{strftime('%H:%M:%S %a %b %Z')}[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}")
         except IndexError as e:
             print(f"{e}")
             print(f"[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}\nCaptain, we've gone off the deep end. len(cuelist) = {len(cuelist)}")
         press(command_keys[value])
         # Increment cue number to track along with Vector
-        if value == "next_cue":
-            CurrentCue += 1
+
     else:
         print(f"Unrecognised command: '{value}'")
 
@@ -103,25 +112,26 @@ def get_auto_trigger(unused_addr, value):
 def sync_to_latest_cue(unused_addr, value):
     global CurrentCue
     global cuelist
-    CurrentCue = 1
     value = round(float(value),3)
     if value not in cuelist:
-        print("FATAL ERROR: Cue number could not be found in cuelist.")
+        raise IndexError(f"Cue 'value={value}'' could not be found in cuelist.")
     elif value in cuelist:
-        print(f"[ {unused_addr} ] ~ Current Cue: {value}")
+        print(f"[ {unused_addr} ] ~ Desired Cue: {value}")
         print(f"Syncing the cues")
         # First, stop anything moving, and clear playbacks, to avoid double loaded PBs
         press(command_keys["all_stop"])
         # Go to the top of the stack
         press(command_keys["first_cue"])
-        for cue in cuelist:
-            if cuelist[CurrentCue-1] == value:
-                print(f"loading cue {cuelist[CurrentCue-1]}")
+        CurrentCue = cuelist[0]
+        for cue in cuelist[0:cuelist.index(value)+1]:
+            CurrentCue = cue
+            if cue == value:
+                print(f"loading cue {CurrentCue}")
                 press(command_keys["load"])
+                print(f"Cue: {CurrentCue} loaded.")
                 break
-            print(f"skipping cue {cuelist[CurrentCue-1]}")
+            print(f"skipping cue {CurrentCue}, now in {cuelist[cuelist.index(CurrentCue)+1]}")
             press(command_keys["next_cue"])
-            CurrentCue += 1
 
 
 def add_cue(unused_addr, value):
@@ -161,7 +171,6 @@ def save_cuelist(unused_addr, value):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip",
     default="127.0.0.1", help="The IP you're listening for OSC 'GO' triggers from")
@@ -171,7 +180,7 @@ if __name__ == "__main__":
     default=None, help="The filename of the .qlist file you want to load.")
     args = parser.parse_args()
 
-    if accept_disclaimer():
+    if GSMD or accept_disclaimer():
         dispatcher = dispatcher.Dispatcher()
         dispatcher.map(f"{system_address}/control", get_auto_trigger)
         dispatcher.map(f"{system_address}/place", sync_to_latest_cue)
@@ -184,7 +193,8 @@ if __name__ == "__main__":
         (args.ip, args.port), dispatcher)
         if args.cuelist == None:
             print("No cuelist specified, we're going on the hard coded values")
-            print(cuelist)
+            print(f"Loaded cuelist:\n{cuelist}")
+            print(f"Starting Cue: {CurrentCue}")
         else:
             print(f"Loading \"{args.cuelist}.qlist\" cuelist file.")
             load_cuelist(None, args.cuelist)
