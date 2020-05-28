@@ -18,7 +18,7 @@ from pythonosc import osc_server
 from pythonosc import dispatcher
 
 press = pyautogui.press
-GSMD=True
+GSMD=True # Are you Guildhall School of Music and Drama? If so, getPerks()
 system_id = "SST_Auto"
 system_address = f"/kinesys/{system_id}"
 
@@ -50,7 +50,6 @@ cuelist = [
 
 CurrentCue = cuelist[0]
 
-
 DISCLAIMER = """
 ==
 This utility allows you to control Kinesys Vector from any software, able to
@@ -69,35 +68,49 @@ interfaces with.
 ==
 """
 def accept_disclaimer():
+    # we skip if we're GSMD... cos we're bosses :-P
     print(DISCLAIMER)
     user_input = str(input("\nPlease type \"responsible\" to continue."))
     return True
 
 def get_auto_trigger(unused_addr, value):
+    """
+    Main command function for jumping around cuelist and controlling Vector.
+    """
     global CurrentCue
     global cuelist
     if value in command_keys.keys():
+        # If valid OSC command to the /control addr:
         if value == "first_cue":
+            #These 3 if statements are mainly handling printed values showing current stack pointer.
             CurrentCue = cuelist[0]
-            print(CurrentCue)
         elif value == "last_cue":
             CurrentCue = cuelist[-1]
         elif value == "next_cue":
             try:
+                # Set CurrentCue to the cuelist item after the current one.
+                # Can cause a TOS error when we get to the end, or lots of cmds being sent, so we just go to the end,
+                # Vector doesn't wrap around.
                 CurrentCue = cuelist[int(cuelist.index(CurrentCue))+1]
             except IndexError as e:
-                print(e)
-                print(f"[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}\nCaptain, we've gone off the deep end. len(cuelist) = {len(cuelist)}")
-                print("Going to last final cue")
+                #print(e)
+                #print("Going to last cue")
                 CurrentCue = cuelist[-1]
         elif value == "prev_cue":
             try:
-                CurrentCue = cuelist[cuelist.index(CurrentCue)-1]
+                if cuelist.index(CurrentCue)-1 <= 0:
+                    CurrentCue = cuelist[0]
+                else:
+                    CurrentCue = cuelist[cuelist.index(CurrentCue)-1]
+                # This doesn't work because negative values wrap to the hi end of the list of course(!)
+                # So we add in a 0 or lower check for the cue pointer
             except IndexError as e:
+                # In theory, this should never be called, because of the wrap around above.
                 print(e)
                 print("Probably at the start of the cuelist. Setting current cue to first cue.")
                 CurrentCue = cuelist[0]
         try:
+            # Just print the current thing. This shouldn't actually ever raise an Index error anymore.
             print(f"{strftime('%H:%M:%S %a %b %Z')}[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}")
         except IndexError as e:
             print(f"{e}")
@@ -106,6 +119,7 @@ def get_auto_trigger(unused_addr, value):
         # Increment cue number to track along with Vector
 
     else:
+        # only raised on the /control OSC addr - i.e. there's not a keyboard press for the command
         print(f"Unrecognised command: '{value}'")
 
 
@@ -116,7 +130,7 @@ def sync_to_latest_cue(unused_addr, value):
     if value not in cuelist:
         raise IndexError(f"Cue 'value={value}'' could not be found in cuelist.")
     elif value in cuelist:
-        print(f"[ {unused_addr} ] ~ Desired Cue: {value}")
+        print(f"{strftime('%H:%M:%S %a %b %Z')}[ {unused_addr} ] ~ Desired Cue: {value}")
         print(f"Syncing the cues")
         # First, stop anything moving, and clear playbacks, to avoid double loaded PBs
         press(command_keys["all_stop"])
@@ -124,11 +138,12 @@ def sync_to_latest_cue(unused_addr, value):
         press(command_keys["first_cue"])
         CurrentCue = cuelist[0]
         for cue in cuelist[0:cuelist.index(value)+1]:
+            # iterate through the cuelist segment up till the cue we want +1 because indexing not hi-end inclusive.
             CurrentCue = cue
             if cue == value:
-                print(f"loading cue {CurrentCue}")
+                print(f"Loading cue {CurrentCue}")
                 press(command_keys["load"])
-                print(f"Cue: {CurrentCue} loaded.")
+                print(f"{strftime('%H:%M:%S %a %b %Z')}[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}")
                 break
             print(f"skipping cue {CurrentCue}, now in {cuelist[cuelist.index(CurrentCue)+1]}")
             press(command_keys["next_cue"])
@@ -192,6 +207,7 @@ if __name__ == "__main__":
         server = osc_server.ThreadingOSCUDPServer(
         (args.ip, args.port), dispatcher)
         if args.cuelist == None:
+            # If we don't pass a --cuelist argument to the program.
             print("No cuelist specified, we're going on the hard coded values")
             print(f"Loaded cuelist:\n{cuelist}")
             print(f"Starting Cue: {CurrentCue}")
