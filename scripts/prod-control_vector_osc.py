@@ -1,79 +1,80 @@
 #!/usr/bin/python
-"""
-kinesys-osc
 
-MIT License
 
-Copyright (c) 2020 James Cooper
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 """
 
+Auto Trigger Go
+
+James Cooper 2020
+Originally written for the Opera Double Bill, GSMD
+
+
+"""
 import argparse
 import pyautogui
 import pickle
 from time import strftime
 from pythonosc import osc_server
 from pythonosc import dispatcher
-import os
+
+# Only set this to False if you get weird random errors.
+pyautogui.FAILSAFE = False
+
+press = pyautogui.press
+GSMD=True # Are you Guildhall School of Music and Drama? If so, getPerks()
+system_id = "SST_Auto"
+system_address = f"/kinesys/{system_id}"
+
+command_keys = {
+"all_stop": "space",
+"red_stop": "f2",
+"blue_stop": "f4",
+"green_stop": "f6",
+"yellow_stop": "f8",
+"red_start": "f1",
+"blue_start": "f3",
+"green_start": "f5",
+"yellow_start": "f7",
+"next_cue": "pagedown",
+"prev_cue": "pageup",
+"first_cue": "home",
+"last_cue": "end",
+"load": "f12",
+}
 
 
+cuelist = [
+0.5,0.6,0.7,0.8,0.9,
+1.0,1.5,2.0,2.5,3.0,3.5,4.0,
+5.0,
+5.1,
+6.0,7.0,8.0,9.0,
+10.0,11.0,12.0,13.0,14.0]
 
-def getPerks():
-    secret_code = "enter your code here"
-    try:
-        with open("ksys_osc.lic") as licence:
-            file = licence.read
-            if file ==
-    except FileNotFoundError:
-        print(f"""Unattended Mode licence could not be found.
-To get one, email the following string to james@jcooper.tech:
-{user_key}""")
-        return False
+CurrentCue = cuelist[0]
 
+DISCLAIMER = """
+==
+This utility allows you to control Kinesys Vector from any software, able to
+send OSC packets.
+
+Kinesys automation software is not designed to allow this capability.
+
+By using this software, you accept ALL and TOTAL responsibility for how the
+system operates. I am providing the means, in good faith, for a virtual show.
+This means that Kinesys is not controlling real world items, and therefore will
+not endanger anyone in the process.
+
+I will not be held accountable for any ways you use this software, in the event
+of damage, injury, or any other unexpected malfunction of any system this
+interfaces with.
+==
+"""
 def accept_disclaimer():
-    if getPerks() == True:
-        return True
-    DISCLAIMER = """
-    ==
-    This utility allows you to control Kinesys Vector from any software, able to
-    send OSC packets.
-
-    Kinesys automation software is not designed to allow this capability.
-
-    By using this software, you accept ALL and TOTAL responsibility for how the
-    system operates. I am providing the means, in good faith, for a virtual show.
-    This means that Kinesys is not controlling real world items, and therefore will
-    not endanger anyone in the process.
-
-    I will not be held accountable for any ways you use this software, in the event
-    of damage, injury, or any other unexpected malfunction of any system this
-    interfaces with.
-    ==
-    """
+    # we skip if we're GSMD... cos we're bosses :-P
     print(DISCLAIMER)
     user_input = str(input("\nPlease type \"responsible\" to continue."))
-    if user_input == "responsible":
-        return True
-    else:
-        print("""Apparently you're not responsible.
-        Either write code to bypass this check, or contact james@jcooper.tech to skip for free.""")
+    return True
 
 def get_auto_trigger(unused_addr, value):
     """
@@ -186,39 +187,6 @@ def save_cuelist(unused_addr, value):
     pickle.dump(cuelist, open(f"{value}.qlist", "wb"))
     print(f"Saved {value}.qlist to  disk successfully.\n{cuelist}")
 
-press = pyautogui.press
-GSMD=None # Are you Guildhall School of Music and Drama? If so, getPerks()
-system_id = "SST_Auto"
-system_address = f"/kinesys/{system_id}"
-
-command_keys = {
-"all_stop": "space",
-"red_stop": "f2",
-"blue_stop": "f4",
-"green_stop": "f6",
-"yellow_stop": "f8",
-"red_start": "f1",
-"blue_start": "f3",
-"green_start": "f5",
-"yellow_start": "f7",
-"next_cue": "pagedown",
-"prev_cue": "pageup",
-"first_cue": "home",
-"last_cue": "end",
-"load": "f12",
-}
-
-
-cuelist = [
-0.5,0.6,0.7,0.8,0.9,
-1.0,1.5,2.0,2.5,3.0,3.5,4.0,
-5.0,
-5.1,
-6.0,7.0,8.0,9.0,
-10.0,11.0,12.0,13.0,14.0]
-
-CurrentCue = cuelist[0]
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -228,15 +196,9 @@ if __name__ == "__main__":
     type = int, default=42020, help="The port you're listening to.")
     parser.add_argument("--cuelist",
     default=None, help="The filename of the .qlist file you want to load.")
-    parser.add_argument("--fsafe",
-    default=True, help="Controls whether pyautogui is in Failsafe Mode. [True]")
     args = parser.parse_args()
-    if args.fsafe = False:
-        pyautogui.FAILSAFE = False
-    else:
-        pyautogui,FAILSAFE = True
 
-    if accept_disclaimer():
+    if GSMD or accept_disclaimer():
         dispatcher = dispatcher.Dispatcher()
         dispatcher.map(f"{system_address}/control", get_auto_trigger)
         dispatcher.map(f"{system_address}/place", sync_to_latest_cue)
