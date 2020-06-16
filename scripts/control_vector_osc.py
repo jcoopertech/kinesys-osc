@@ -35,21 +35,8 @@ import os
 
 
 
-def getPerks():
-    secret_code = "enter your code here"
-    try:
-        with open("ksys_osc.lic") as licence:
-            file = licence.read
-            if file ==
-    except FileNotFoundError:
-        print(f"""Unattended Mode licence could not be found.
-To get one, email the following string to james@jcooper.tech:
-{user_key}""")
-        return False
 
 def accept_disclaimer():
-    if getPerks() == True:
-        return True
     DISCLAIMER = """
     ==
     This utility allows you to control Kinesys Vector from any software, able to
@@ -75,10 +62,17 @@ def accept_disclaimer():
         print("""Apparently you're not responsible.
         Either write code to bypass this check, or contact james@jcooper.tech to skip for free.""")
 
+doingCMD = False
+isSyncing = False
 def get_auto_trigger(unused_addr, value):
+    global doingCMD
+    if doingCMD == True:
+        return
+    else:
+        doingCMD = True
     """
     Main command function for jumping around cuelist and controlling Vector.
-    """
+    """ 
     global CurrentCue
     global cuelist
     if value in command_keys.keys():
@@ -123,9 +117,14 @@ def get_auto_trigger(unused_addr, value):
     else:
         # only raised on the /control OSC addr - i.e. there's not a keyboard press for the command
         print(f"Unrecognised command: '{value}'")
-
+    doingCMD=False
 
 def sync_to_latest_cue(unused_addr, value):
+    global isSyncing
+    if isSyncing == True:
+        return
+    else:
+        isSyncing = True
     global CurrentCue
     global cuelist
     value = round(float(value),3)
@@ -142,13 +141,14 @@ def sync_to_latest_cue(unused_addr, value):
         for cue in cuelist[0:cuelist.index(value)+1]:
             # iterate through the cuelist segment up till the cue we want +1 because indexing not hi-end inclusive.
             CurrentCue = cue
-            if cue == value:
+            if CurrentCue == value:
 ####                print(f"Loading cue {CurrentCue}")
 ##                press(command_keys["load"])
                 print(f"{strftime('%H:%M:%S %a %b %Z')}[ {unused_addr} ] ~ {value} - Current Cue: {CurrentCue}")
                 break
             print(f"skipping cue {CurrentCue}, now in {cuelist[cuelist.index(CurrentCue)+1]}")
             press(command_keys["next_cue"])
+    isSyncing = False
 
 
 def add_cue(unused_addr, value):
@@ -210,12 +210,7 @@ command_keys = {
 
 
 cuelist = [
-0.5,0.6,0.7,0.8,0.9,
-1.0,1.5,2.0,2.5,3.0,3.5,4.0,
-5.0,
-5.1,
-6.0,7.0,8.0,9.0,
-10.0,11.0,12.0,13.0,14.0]
+0.1,0.2,0.3,0.9,1.0,2.0,2.1,2.9,3.0,4.0,5.0,5.1,5.9,6.0,7.0,7.1,8.0,8.9,9.0,10.0]
 
 CurrentCue = cuelist[0]
 
@@ -231,10 +226,10 @@ if __name__ == "__main__":
     parser.add_argument("--fsafe",
     default=True, help="Controls whether pyautogui is in Failsafe Mode. [True]")
     args = parser.parse_args()
-    if args.fsafe = False:
+    if args.fsafe == False:
         pyautogui.FAILSAFE = False
     else:
-        pyautogui,FAILSAFE = True
+        pyautogui.FAILSAFE = True
 
     if accept_disclaimer():
         dispatcher = dispatcher.Dispatcher()
