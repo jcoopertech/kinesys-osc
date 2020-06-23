@@ -22,18 +22,18 @@ pythonosc
 
 ## Usage
 On Windows:
-```bash
+```Shell
 python control_vector_osc.py [--ip IP] [--port PORT] [--cuelist FILE_NAME]
 ```
 
 On Mac:
-```bash
+```Shell
 python3 control_vector_osc.py [--ip IP] [--port PORT] [--cuelist FILE_NAME]
 ```
 
 ### Default values:
 If argument is ommited, default values are:
-```
+```Shell
 --ip: 127.0.0.1
 --port: 42020
 --cuelist: None
