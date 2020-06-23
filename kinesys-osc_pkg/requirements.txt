@@ -1,0 +1,3 @@
+
+PyAutoGUI==0.9.50
+python-osc==1.7.4
