@@ -4,9 +4,14 @@
 ## Purpose
 Emulates Kinesys Vector V2 Keyboard Shortcuts, to emulate an operator starting playbacks. This is to enable timecode triggered automation in a **simulation** environment.
 
-**This code should never be used to control motors or drives in a real world scenario. You take sole responsibility for how you use this code.**
+## Disclaimer
+**This code should never be used to control motors or drives in a real world scenario.**
+**You take sole responsibility for how you use this code.**
 
 **This system was built for a virtual show, where Vector sends Media Server Packets to D3, for simulation of set piece movement.**
+
+**There are going to be bugs and scenarios which this code cannot protect against. Only through trial and error do we find them.
+Make sure you always have an attentive automation operator if implementing this code in real life (not recommended at all).**
 
 ## Dependencies
 Available in requirements.txt (kinesys-osc_pkg/requirements.txt)
