@@ -9,16 +9,12 @@ Emulates Kinesys Vector V2 Keyboard Shortcuts, to emulate an operator starting p
 **This system was built for a virtual show, where Vector sends Media Server Packets to D3, for simulation of set piece movement.**
 
 ## Dependencies
+Available in requirements.txt (kinesys-osc_pkg/requirements.txt)
 ```
 pyAutoGUI
 pythonosc
 ```
 
-These can be installed by using `pip` or `pip3` on Mac.
-```
-pip install pyAutoGUI
-pip install pythonosc
-```
 ## Usage
 On Windows:
 ```
@@ -40,10 +36,11 @@ Arguments are all optional - default values are:
 
 If cuelist is `None`, it will load whatever is programmed in the file as "`cuelist`"
 
-At the current time, this is:
+Example cuelist is below:
+Note: Elements should be floats, and have one decimal - Vector will only do Q Numbers to 1dp.
 ```python
 cuelist = [
-1.0, 2.0, 3.0, 4.0, 4.24, 4.25, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
+0.1, 0.2, 0.3, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 10.9
 ]
 ```
 
