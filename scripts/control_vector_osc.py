@@ -64,7 +64,23 @@ def accept_disclaimer():
 
 doingCMD = False
 isSyncing = False
+Buffer = []
+
+def runBufferCMD(buffer):
+    pass
+
+def buffer_management(buffer):
+    if len(buffer)>0:
+        print("items in buffer")
+        runBufferCMD(buffer)
+    else:
+        print("buffer empty")
+
+
 def get_auto_trigger(unused_addr, value):
+    global Buffer
+    buffer_management(Buffer)
+
     global doingCMD
     if doingCMD == True:
         return
@@ -72,7 +88,7 @@ def get_auto_trigger(unused_addr, value):
         doingCMD = True
     """
     Main command function for jumping around cuelist and controlling Vector.
-    """ 
+    """
     global CurrentCue
     global cuelist
     if value in command_keys.keys():
