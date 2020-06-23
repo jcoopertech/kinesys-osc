@@ -22,26 +22,26 @@ pythonosc
 
 ## Usage
 On Windows:
-```
-python control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
+```bash
+python control_vector_osc.py [--ip IP] [--port PORT] [--cuelist FILE_NAME]
 ```
 
 On Mac:
-```
-python3 control_vector_osc.py --ip IP --port PORT --cuelist FILE_NAME
+```bash
+python3 control_vector_osc.py [--ip IP] [--port PORT] [--cuelist FILE_NAME]
 ```
 
 ### Default values:
-Arguments are all optional - default values are:
+If argument is ommited, default values are:
 ```
 --ip: 127.0.0.1
 --port: 42020
 --cuelist: None
 ```
 
-If cuelist is `None`, it will load whatever is programmed in the file as "`cuelist`"
+If cuelist is `None`, we will load whatever is programmed in the file as "`cuelist`"
 
-Example cuelist is below:
+Example `cuelist` array is below:
 Note: Elements should be floats, and have one decimal - Vector will only do Q Numbers to 1dp.
 ```python
 cuelist = [
