@@ -34,6 +34,36 @@ from pythonosc import dispatcher
 import os
 
 
+class Job():
+    def __init__(self, unused_addr, value, opfunct):
+        self.addr = unused_addr
+        self.value = value
+        self.execute = opfunct
+
+    def do(self):
+        self.execute(self.addr, self.value)
+
+
+class Buffer():
+    """Create a wrapper class for the buffer system, full of job objects"""
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, unused_addr, value, opfunct):
+        print(f"BUFFER ADD: {opfunct.__name__} {unused_addr} {value}")
+        self.tasks.append(Job(unused_addr,value,opfunct))
+
+    def delete_first(self):
+        print(f"BUFFER DEL: {self.tasks[0].execute.__name__} {self.tasks[0].addr} {self.tasks[0].value}")
+        self.tasks.pop(0)
+
+    def get_buffer(self):
+        return self.tasks
+
+    def do(self):
+        while len(self.tasks) != 0:
+            self.tasks[0].do()
+            self.delete_first()
 
 
 def accept_disclaimer():
@@ -64,28 +94,31 @@ def accept_disclaimer():
 
 doingCMD = False
 isSyncing = False
-Buffer = []
+MainBuffer = Buffer()
+bufferBlock = False
 
-def runBufferCMD(buffer):
-    pass
-
-def buffer_management(buffer):
-    if len(buffer)>0:
-        print("items in buffer")
-        runBufferCMD(buffer)
-    else:
-        print("buffer empty")
+def buffer_management(MainBuffer):
+    global bufferBlock
+    if bufferBlock == True:
+        return
+    elif bufferBlock == False:
+        bufferBlock = True
+    if len(MainBuffer.get_buffer()) > 0:
+        MainBuffer.do()
+    bufferBlock = False
 
 
 def get_auto_trigger(unused_addr, value):
-    global Buffer
-    buffer_management(Buffer)
-
+    global MainBuffer
+    global isSyncing
+    global bufferBlock
     global doingCMD
-    if doingCMD == True:
+    if doingCMD == True or isSyncing == True:
+        MainBuffer.add_task(unused_addr, value, get_auto_trigger)
         return
     else:
         doingCMD = True
+
     """
     Main command function for jumping around cuelist and controlling Vector.
     """
@@ -134,13 +167,20 @@ def get_auto_trigger(unused_addr, value):
         # only raised on the /control OSC addr - i.e. there's not a keyboard press for the command
         print(f"Unrecognised command: '{value}'")
     doingCMD=False
+    buffer_management(MainBuffer)
+
+
 
 def sync_to_latest_cue(unused_addr, value):
     global isSyncing
+    global MainBuffer
     if isSyncing == True:
+        MainBuffer.add_task(unused_addr, value, sync_to_latest_cue)
         return
     else:
         isSyncing = True
+
+
     global CurrentCue
     global cuelist
     value = round(float(value),3)
@@ -165,6 +205,7 @@ def sync_to_latest_cue(unused_addr, value):
             print(f"skipping cue {CurrentCue}, now in {cuelist[cuelist.index(CurrentCue)+1]}")
             press(command_keys["next_cue"])
     isSyncing = False
+    buffer_management(MainBuffer)
 
 
 def add_cue(unused_addr, value):
@@ -201,6 +242,7 @@ def save_cuelist(unused_addr, value):
     global cuelist
     pickle.dump(cuelist, open(f"{value}.qlist", "wb"))
     print(f"Saved {value}.qlist to  disk successfully.\n{cuelist}")
+
 
 press = pyautogui.press
 GSMD=None # Are you Guildhall School of Music and Drama? If so, getPerks()
