@@ -34,7 +34,40 @@ from pythonosc import dispatcher
 import os
 
 
+class Job():
+    def __init__(self, unused_addr, value, opfunct):
+        self.addr = unused_addr
+        self.value = value
+        self.execute = opfunct(self.addr, self.value)
 
+    def do(self):
+        self.execute()
+
+class Buffer():
+    """Create a wrapper class for the buffer system, full of jobs"""
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, unused_addr, value, opfunct):
+        self.tasks.append(Job(unused_addr,value,opfunct))
+
+    def get_next(self):
+        return self.tasks[0]
+
+    def delete_first(self):
+        del self.tasks[0]
+
+    def get_buffer(self):
+        return self.tasks
+
+    def do_buffer_check(self):
+        if len(self.tasks) > 0:
+            pass
+
+    def do(self):
+        for job in self.tasks:
+            job.do()
+            del job
 
 def accept_disclaimer():
     DISCLAIMER = """
@@ -64,25 +97,28 @@ def accept_disclaimer():
 
 doingCMD = False
 isSyncing = False
-Buffer = []
+MainBuffer = Buffer()
+bufferBlock = False
 
-def runBufferCMD(buffer):
-    pass
-
-def buffer_management(buffer):
-    if len(buffer)>0:
+def buffer_management(MainBuffer):
+    global bufferBlock
+    bufferBlock = True
+    if len(MainBuffer.get_buffer()) > 0:
         print("items in buffer")
-        runBufferCMD(buffer)
+        Buffer.tasks[0].do()
+        Buffer.delete_first()
     else:
         print("buffer empty")
+    bufferBlock = False
 
 
 def get_auto_trigger(unused_addr, value):
-    global Buffer
-    buffer_management(Buffer)
+    global MainBuffer
+    buffer_management(MainBuffer)
 
     global doingCMD
     if doingCMD == True:
+        Buffer.append(Job(unused_addr, value, get_auto_trigger))
         return
     else:
         doingCMD = True
@@ -133,6 +169,8 @@ def get_auto_trigger(unused_addr, value):
     else:
         # only raised on the /control OSC addr - i.e. there's not a keyboard press for the command
         print(f"Unrecognised command: '{value}'")
+    if len(MainBuffer.get_buffer() > 0:
+        MainBuffer.do()
     doingCMD=False
 
 def sync_to_latest_cue(unused_addr, value):
