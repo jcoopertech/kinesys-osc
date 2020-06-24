@@ -53,19 +53,12 @@ class Buffer():
         print(f"BUFFER ADD: {opfunct.__name__} {unused_addr} {value}")
         self.tasks.append(Job(unused_addr,value,opfunct))
 
-    def get_next(self):
-        return self.tasks[0]
-
     def delete_first(self):
-        print(f"DUFFER DEL: {self.tasks[0].execute.__name__} {self.tasks[0].addr} {self.tasks[0].value}")
+        print(f"BUFFER DEL: {self.tasks[0].execute.__name__} {self.tasks[0].addr} {self.tasks[0].value}")
         self.tasks.pop(0)
 
     def get_buffer(self):
         return self.tasks
-
-    def do_buffer_check(self):
-        if len(self.tasks) > 0:
-            pass
 
     def do(self):
         while len(self.tasks) != 0:
@@ -93,7 +86,7 @@ def accept_disclaimer():
     """
     print(DISCLAIMER)
     user_input = str(input("\nPlease type \"responsible\" to continue."))
-    if user_input == "responsible" or True:
+    if user_input == "responsible":
         return True
     else:
         print("""Apparently you're not responsible.
