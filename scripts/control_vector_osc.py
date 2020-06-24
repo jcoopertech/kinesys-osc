@@ -38,24 +38,27 @@ class Job():
     def __init__(self, unused_addr, value, opfunct):
         self.addr = unused_addr
         self.value = value
-        self.execute = opfunct(self.addr, self.value)
+        self.execute = opfunct
 
     def do(self):
-        self.execute()
+        self.execute(self.addr, self.value)
+
 
 class Buffer():
-    """Create a wrapper class for the buffer system, full of jobs"""
+    """Create a wrapper class for the buffer system, full of job objects"""
     def __init__(self):
         self.tasks = []
 
     def add_task(self, unused_addr, value, opfunct):
+        print(f"BUFFER ADD: {opfunct.__name__} {unused_addr} {value}")
         self.tasks.append(Job(unused_addr,value,opfunct))
 
     def get_next(self):
         return self.tasks[0]
 
     def delete_first(self):
-        del self.tasks[0]
+        print(f"DUFFER DEL: {self.tasks[0].execute.__name__} {self.tasks[0].addr} {self.tasks[0].value}")
+        self.tasks.pop(0)
 
     def get_buffer(self):
         return self.tasks
@@ -65,9 +68,10 @@ class Buffer():
             pass
 
     def do(self):
-        for job in self.tasks:
-            job.do()
-            del job
+        while len(self.tasks) != 0:
+            self.tasks[0].do()
+            self.delete_first()
+
 
 def accept_disclaimer():
     DISCLAIMER = """
@@ -89,7 +93,7 @@ def accept_disclaimer():
     """
     print(DISCLAIMER)
     user_input = str(input("\nPlease type \"responsible\" to continue."))
-    if user_input == "responsible":
+    if user_input == "responsible" or True:
         return True
     else:
         print("""Apparently you're not responsible.
@@ -102,26 +106,26 @@ bufferBlock = False
 
 def buffer_management(MainBuffer):
     global bufferBlock
-    bufferBlock = True
+    if bufferBlock == True:
+        return
+    elif bufferBlock == False:
+        bufferBlock = True
     if len(MainBuffer.get_buffer()) > 0:
-        print("items in buffer")
-        Buffer.tasks[0].do()
-        Buffer.delete_first()
-    else:
-        print("buffer empty")
+        MainBuffer.do()
     bufferBlock = False
 
 
 def get_auto_trigger(unused_addr, value):
     global MainBuffer
-    buffer_management(MainBuffer)
-
+    global isSyncing
+    global bufferBlock
     global doingCMD
-    if doingCMD == True:
-        Buffer.append(Job(unused_addr, value, get_auto_trigger))
+    if doingCMD == True or isSyncing == True:
+        MainBuffer.add_task(unused_addr, value, get_auto_trigger)
         return
     else:
         doingCMD = True
+
     """
     Main command function for jumping around cuelist and controlling Vector.
     """
@@ -169,16 +173,21 @@ def get_auto_trigger(unused_addr, value):
     else:
         # only raised on the /control OSC addr - i.e. there's not a keyboard press for the command
         print(f"Unrecognised command: '{value}'")
-    if len(MainBuffer.get_buffer() > 0:
-        MainBuffer.do()
     doingCMD=False
+    buffer_management(MainBuffer)
+
+
 
 def sync_to_latest_cue(unused_addr, value):
     global isSyncing
+    global MainBuffer
     if isSyncing == True:
+        MainBuffer.add_task(unused_addr, value, sync_to_latest_cue)
         return
     else:
         isSyncing = True
+
+
     global CurrentCue
     global cuelist
     value = round(float(value),3)
@@ -203,6 +212,7 @@ def sync_to_latest_cue(unused_addr, value):
             print(f"skipping cue {CurrentCue}, now in {cuelist[cuelist.index(CurrentCue)+1]}")
             press(command_keys["next_cue"])
     isSyncing = False
+    buffer_management(MainBuffer)
 
 
 def add_cue(unused_addr, value):
@@ -239,6 +249,7 @@ def save_cuelist(unused_addr, value):
     global cuelist
     pickle.dump(cuelist, open(f"{value}.qlist", "wb"))
     print(f"Saved {value}.qlist to  disk successfully.\n{cuelist}")
+
 
 press = pyautogui.press
 GSMD=None # Are you Guildhall School of Music and Drama? If so, getPerks()
